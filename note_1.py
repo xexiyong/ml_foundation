@@ -155,8 +155,19 @@ def train_pla_pure_randomly(train, test, use_pocket=True, update_num=50):
                     w = wt
             else:
                 w = wt
+    return w
 
-    # print w
+
+def train_pla_pure_randomly_no_pocket(train, update_num=50):
+    w = np.array([0, 0, 0, 0, 0])
+
+    for i in range(update_num):
+        seed = np.random.randint(0, len(train))
+        f = np.array([1] + train[seed][:4])
+        y = train[seed][4]
+        if sign(np.dot(f, w)) != y:
+            w = w + y * f
+
     return w
 
 
@@ -174,7 +185,10 @@ def pocket_algo(use_pocket=True, update_num=50):
     train_sample = load_18()
     test_sample = load_18_test()
 
-    w = train_pla_pure_randomly(train_sample, test_sample, use_pocket, update_num)
+    if use_pocket:
+        w = train_pla_pure_randomly(train_sample, test_sample, use_pocket, update_num)
+    else:
+        w = train_pla_pure_randomly_no_pocket(train_sample, update_num)
 
     err_num = test_error_rate(w, test_sample)
     print err_num
@@ -188,17 +202,17 @@ def pocket_algo(use_pocket=True, update_num=50):
 # print err_rate / 2000
 
 #  question 19: the err rate is 0.169  0.16934625
-# err_rate = 0
-# for i in range(2000):
-#     np.random.seed(i)
-#     err_rate += pocket_algo(use_pocket=False)
-#
-# print err_rate / 2000
-
-#  question 20: the err rate is 0.29  0.04269625
 err_rate = 0
 for i in range(2000):
     np.random.seed(i)
-    err_rate += pocket_algo(use_pocket=True, update_num=100)
+    err_rate += pocket_algo(use_pocket=False)
 
 print err_rate / 2000
+
+#  question 20: the err rate is 0.29  0.04269625
+# err_rate = 0
+# for i in range(2000):
+#     np.random.seed(i)
+#     err_rate += pocket_algo(use_pocket=True, update_num=100)
+#
+# print err_rate / 2000
