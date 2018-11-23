@@ -55,8 +55,7 @@ def train_pla_naive():
             if sign(np.dot(f, w)) != y:
                 converge = False
                 w = w + y*f
-                break
-        iteration_num += 1
+                iteration_num += 1
         print w
 
         if converge:
@@ -64,8 +63,20 @@ def train_pla_naive():
             break
     print('iter times', iteration_num)
 
-# question 15 converge after 61 times
+# question 15 converge after 41 update times
 # train_pla_naive()
+
+
+# def test_pla_naive():
+#     w = np.array([-4,        3.6161856, -2.013502,   3.123158,   5.49830856])
+#     # w = np.array([-3,        2.376295,  -1.245351,   2.7881873,  3.7895245])
+#     sample = load_15()
+#     for f_label in sample:
+#         f = np.array([1] + f_label[:4])
+#         y = f_label[4]
+#         if sign(np.dot(f, w)) != y:
+#             print 'miss'
+# test_pla_naive()
 
 
 def train_pla_randomly(learning_rate=1.0):
@@ -85,15 +96,14 @@ def train_pla_randomly(learning_rate=1.0):
             if sign(np.dot(f, w)) != y:
                 converge = False
                 w = w + learning_rate*y*f
-                break
-        iteration_num += 1
+                iteration_num += 1
         if converge:
             print('converge!')
             break
 
     return iteration_num
 
-# question 16 after 2000 experiment average times is 2.732  66.9475
+# question 16 after 2000 experiment average times is 2.732  66.9475  39.7695
 # iter_array = 0
 # for i in range(2000):
 #     iter_times = train_pla_randomly()
@@ -101,7 +111,7 @@ def train_pla_randomly(learning_rate=1.0):
 #
 # print float(iter_array) / 2000
 
-# question 17 after 2000 experiment with learning rate average times is 2.7455 66.2705
+# question 17 after 2000 experiment with learning rate average times is 2.7455 66.2705 40.036
 # iter_array = 0
 # for i in range(2000):
 #     iter_times = train_pla_randomly(learning_rate=0.5)
@@ -130,13 +140,14 @@ def load_18_test():
 
 def train_pla_pure_randomly(train, test, use_pocket=True, update_num=50):
     w = np.array([0, 0, 0, 0, 0])
+    wt = np.array([0, 0, 0, 0, 0])
 
     for i in range(update_num):
         seed = np.random.randint(0, len(train))
         f = np.array([1] + train[seed][:4])
         y = train[seed][4]
-        if sign(np.dot(f, w)) != y:
-            wt = w + y*f
+        if sign(np.dot(f, wt)) != y:
+            wt = wt + y*f
             if use_pocket:
                 wt_err = test_error_rate(wt, test)
                 w_err = test_error_rate(w, test)
@@ -145,6 +156,7 @@ def train_pla_pure_randomly(train, test, use_pocket=True, update_num=50):
             else:
                 w = wt
 
+    # print w
     return w
 
 
@@ -168,14 +180,14 @@ def pocket_algo(use_pocket=True, update_num=50):
     print err_num
     return float(err_num) / len(test_sample)
 
-#  question 18: the err rate is 0.29
-err_rate = 0
-for i in range(2000):
-    np.random.seed(i)
-    err_rate += pocket_algo()
-print err_rate / 2000
+#  question 18: the err rate is 0.29  0.09291
+# err_rate = 0
+# for i in range(2000):
+#     np.random.seed(i)
+#     err_rate += pocket_algo()
+# print err_rate / 2000
 
-#  question 19: the err rate is 0.169
+#  question 19: the err rate is 0.169  0.16934625
 # err_rate = 0
 # for i in range(2000):
 #     np.random.seed(i)
@@ -183,10 +195,10 @@ print err_rate / 2000
 #
 # print err_rate / 2000
 
-#  question 20: the err rate is 0.29
-# err_rate = 0
-# for i in range(2000):
-#     np.random.seed(i)
-#     err_rate += pocket_algo(use_pocket=True, update_num=100)
-#
-# print err_rate / 2000
+#  question 20: the err rate is 0.29  0.04269625
+err_rate = 0
+for i in range(2000):
+    np.random.seed(i)
+    err_rate += pocket_algo(use_pocket=True, update_num=100)
+
+print err_rate / 2000
