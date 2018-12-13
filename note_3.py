@@ -154,32 +154,40 @@ def get_sample(f):
             raw_x = line.strip().split(' ')[:-1]
             raw_y = line.strip().split(' ')[-1]
             item_x = [float(v) for v in raw_x]
-            item_y = [1 if not v.startswith('-') else -1 for v in raw_y]
+            item_y = 1 if not raw_y.startswith('-') else -1
             x.append(item_x)
             y.append(item_y)
     return np.asarray(x), np.asarray(y)
 
 
 def lr_gradient_descent(train_x, train_y, learning_rate=0.001, iter_num=2000):
+    print 'train'
     columns = len(train_x[0])
     w = np.zeros((1, columns))
+    # print w
 
     for i in range(iter_num):
-        w = w - learning_rate * np.dot(np.mat(calc(train_x, w.T) - train_y).T, train_x)
+        y_hat = calc(train_x, w.T)
+        # print y_hat
+        # print train_y
+        hx_y = y_hat - train_y
+        w = w - learning_rate * np.dot(np.mat(hx_y).T, train_x)
 
     return w
 
 
 def calc(x, w):
-    return 1.0 / (1 + np.exp(- np.dot(x, w)))
+    return 1.0 / (1 + np.exp(-np.dot(x, w)))
 
 
 def predict(w, test_x, test_y):
+    print 'predict'
     err_rate = list()
     test_len = len(test_x)
 
-    for x, y in test_x, test_y:
-        y_hat = sign(calc(x, w) - 0.5)
+    print w
+    for x, y in zip(test_x, test_y):
+        y_hat = sign(calc(x, w.T) - 0.5)
         if y_hat != y:
             err_rate += 1
     return 1.0*err_rate / test_len
