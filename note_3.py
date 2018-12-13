@@ -3,7 +3,8 @@
 
 import numpy as np
 import random
-
+import urllib2
+import os
 
 def d_u(u, v):
     return np.exp(u) + v* np.exp(u*v) + 2*u -2*v - 3
@@ -125,4 +126,70 @@ def ques_fourt():
     # print np.mean(e_in)
 
 
-ques_fourt()
+# ques_fourt()
+
+train_url = 'https://www.csie.ntu.edu.tw/~htlin/mooc/datasets/mlfound_algo/hw3_train.dat'
+test_url = 'https://www.csie.ntu.edu.tw/~htlin/mooc/datasets/mlfound_algo/hw3_test.dat'
+
+
+def get_dataset(url, f):
+    content = urllib2.urlopen(url)
+    dataset_f = os.path.join(os.getcwd(), f)
+    fr = open(dataset_f, 'w')
+    for line in content:
+        print line
+        fr.write(line)
+
+    fr.close()
+
+
+# get_dataset(train_url, 'hdw3_train.dat')
+# get_dataset(test_url, 'hdw3_test.dat')
+
+def get_sample(f):
+    x = list()
+    y = list()
+    with open(f) as f:
+        for line in f:
+            raw_x = line.strip().split(' ')[:-1]
+            raw_y = line.strip().split(' ')[-1]
+            item_x = [float(v) for v in raw_x]
+            item_y = [1 if not v.startswith('-') else -1 for v in raw_y]
+            x.append(item_x)
+            y.append(item_y)
+    return np.asarray(x), np.asarray(y)
+
+
+def lr_gradient_descent(train_x, train_y, learning_rate=0.001, iter_num=2000):
+    columns = len(train_x[0])
+    w = np.zeros((1, columns))
+
+    for i in range(iter_num):
+        w = w - learning_rate * np.dot(np.mat(calc(train_x, w.T) - train_y).T, train_x)
+
+    return w
+
+
+def calc(x, w):
+    return 1.0 / (1 + np.exp(- np.dot(x, w)))
+
+
+def predict(w, test_x, test_y):
+    err_rate = list()
+    test_len = len(test_x)
+
+    for x, y in test_x, test_y:
+        y_hat = sign(calc(x, w) - 0.5)
+        if y_hat != y:
+            err_rate += 1
+    return 1.0*err_rate / test_len
+
+
+train_x, train_y = get_sample('hdw3_train.dat')
+print train_x[0]
+print train_y[0]
+test_x, test_y = get_sample('hdw3_test.dat')
+w = lr_gradient_descent(train_x, train_y)
+err_rate = predict(w, test_x, test_y)
+print err_rate
+
