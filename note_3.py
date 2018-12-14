@@ -155,7 +155,7 @@ def get_sample(f):
             raw_y = line.strip().split(' ')[-1]
             item_x = [float(v) for v in raw_x]
             item_y = 1 if not raw_y.startswith('-') else -1
-            x.append(item_x)
+            x.append([1] + item_x)
             y.append(item_y)
     return np.asarray(x), np.asarray(y)
 
@@ -163,31 +163,61 @@ def get_sample(f):
 def lr_gradient_descent(train_x, train_y, learning_rate=0.001, iter_num=2000):
     print 'train'
     columns = len(train_x[0])
+    rows = len(train_y)
     w = np.zeros((1, columns))
     # print w
 
+    train_y = train_y.reshape((1, rows))
     for i in range(iter_num):
-        y_hat = calc(train_x, w.T)
+        y_hat = calc(train_x, w.T).T
         # print y_hat
         # print train_y
         hx_y = y_hat - train_y
-        w = w - learning_rate * np.dot(np.mat(hx_y).T, train_x)
+        # print y_hat.shape
+        # print train_y.T.shape
+        assert y_hat.shape == train_y.shape
+        # 1 * n   n * d = 1 * d
+        w = w - learning_rate * np.dot(hx_y, train_x)
+
+    return w
+
+
+def lr_sgd(train_x, train_y, learning_rate=0.001, iter_num=2000):
+    print 'train'
+    columns = len(train_x[0])
+    rows = len(train_y)
+    w = np.zeros((1, columns))
+
+    train_y = train_y.reshape((1, rows))
+    for i in range(iter_num):
+        sample_x = train_x[i % rows, :]
+        sample_y = train_y[:, i % rows]
+        y_hat = calc(sample_x, w.T).T
+        hx_y = y_hat - sample_y
+        # print y_hat
+        # print sample_y
+        assert y_hat.shape == sample_y.shape
+        # 1 * n   n * d = 1 * d
+        # print hx_y
+        # print sample_x
+        w = w - learning_rate * np.multiply(hx_y, sample_x)
 
     return w
 
 
 def calc(x, w):
-    return 1.0 / (1 + np.exp(-np.dot(x, w)))
+    return 1.0 / (1 + np.exp(-1 * np.dot(x, w)))
 
 
 def predict(w, test_x, test_y):
     print 'predict'
-    err_rate = list()
+    err_rate = 0
     test_len = len(test_x)
 
     print w
     for x, y in zip(test_x, test_y):
         y_hat = sign(calc(x, w.T) - 0.5)
+        # y_hat = 0 if y_hat < 0 else y_hat
         if y_hat != y:
             err_rate += 1
     return 1.0*err_rate / test_len
@@ -197,7 +227,8 @@ train_x, train_y = get_sample('hdw3_train.dat')
 print train_x[0]
 print train_y[0]
 test_x, test_y = get_sample('hdw3_test.dat')
-w = lr_gradient_descent(train_x, train_y)
+# w = lr_gradient_descent(train_x, train_y, learning_rate=0.001)
+w = lr_sgd(train_x, train_y, learning_rate=0.001)
 err_rate = predict(w, test_x, test_y)
 print err_rate
 
